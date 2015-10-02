@@ -7,6 +7,11 @@
 	:const centerY 29
 	:const startY 4
 
+	#states
+	:const drawing: 0
+	:const waitingForInput: 1
+	:const incorrectInput: 2
+
 
 	:alias keyPressed v0
 	:alias splitX v0
