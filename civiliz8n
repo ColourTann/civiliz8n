@@ -515,6 +515,9 @@
 
 		gameState := state_incorrectInput
 
+		if keyPressed == 0 then return
+
+
 		# fiddly business
 		keyPressed += 255
 		v1 := keyPressed
@@ -543,12 +546,19 @@
 		return
 	end
 
+	v1 := 0xff
+
 	if keyPressed == 4 then v1 := 0
 	if keyPressed == 5 then v1 := 1
 	if keyPressed == 6 then v1 := 2
 	if keyPressed == 9 then v1 := 3
 	if keyPressed == 8 then v1 := 4
 	if keyPressed == 7 then v1 := 5
+
+	if keyPressed == 0xff begin
+		gameState := state_incorrectInput
+		return
+	end
 
 	# use the surrounding function with the correct index to get the specified tile
 	surroundIndex := v1
