@@ -5,11 +5,12 @@
 	:const fiddlyBotY 60 #startY + 8 * 7
 	:const centerX 66
 	:const centerY 29
-
 	:const startY 4
 
 
 	:alias keyPressed v0
+	:alias splitX v0
+	:alias splitY v1
 	:alias xySplit v3
 	:alias surroundCheck v6
 	:alias surroundTile v7
@@ -282,19 +283,24 @@
 return
 
 : drawHex
+
+	# currentTile holds the tile Position
 	i := currentTile
 	load v0
 	hexPosition := v0
 
+	# save 1 in tileStorage to keep track of the fact this tile has been used
 	i := tileStorage
-	hexPosition := hexPosition
 	i += v0
 	v0 := 1
 	save v0
+
+	# get the screen position
 	xySplit := hexPosition
 	splitByteToXY
 	setDrawPositionsFromXY
 
+	# have do 4 draw calls, 2 with each bitplane
 	i := trees
 	v2 := 7
 	plane 1
@@ -309,9 +315,13 @@ return
 	i += v2
 	plane 2
 	sprite drawX drawY 7
+
 return
 
 : nextSurroundingByte
+		
+	# keep track of surroundIndex so you can get the next tile around easily
+
 	surroundTile := surroundCheck
 	if surroundIndex == 0 begin
 		surroundTile += 0b11110000
@@ -334,9 +344,15 @@ return
 		surroundTile += 0b11110000
 	end
 	surroundIndex += 1
+
 return
 	
 : splitByteToXY
+
+	# tile locations encode x/y positions in one byte
+	# this splits it into x/y and saves that to splitPositions
+
+	# x portion
 	v0 := xySplit
 	v2 := 0b11110000
 	v0 &= v2
@@ -345,10 +361,12 @@ return
 	v0 >>= v0
 	v0 >>= v0
 
+	# y portion
 	v1 := xySplit
 	v2 := 0b00001111
 	v1 &= v2
 	
+	# offset so the center is 0,0 ish
 	v2 := 4
 	v0 -= v2
 	v1 -= v2
@@ -359,9 +377,14 @@ return
 return
 
 : setDrawPositionsFromXY
+
+	# convenience function to convert grid coordinates into screen coordinates
 	drawX := centerX
 	drawY := centerY
+	i := splitPositions
+	load v1
 
+	# must be a better way than having two loops for negative/positive
 	if splitX < 100 begin 
 		loop
 			while splitX != 0 
@@ -370,7 +393,6 @@ return
 			drawY += 4
 		again
 	end
-
 	if splitX > 100 begin 
 		loop
 			while splitX != 0 
@@ -398,6 +420,8 @@ return
 return
 
 : drawControls
+	
+	# draws controls in surrounding tiles
 	plane 1
 	surroundIndex := 0
 	surroundCheck := hexPosition
@@ -406,8 +430,9 @@ return
 		hexPosition2 := surroundTile
 		getHexType
 		if v0 == 1 begin
-		 skipControlDraw
-		 return
+			# skips occupied tiles
+		 	skipControlDraw
+		 	return
 		end
 
 		xySplit := surroundTile
@@ -426,34 +451,39 @@ return
 		sprite drawX drawY 5
 		: skipControlDraw
 	if surroundIndex < 6 then again
-
 return
 
 : keyInput	
 
+	# Watch out, keyPressed is v0 so it won't stick around.
 	keyPressed := key
-	
 	if keyPressed == 4 then v1 := 0
 	if keyPressed == 5 then v1 := 1
 	if keyPressed == 6 then v1 := 2
 	if keyPressed == 9 then v1 := 3
 	if keyPressed == 8 then v1 := 4
 	if keyPressed == 7 then v1 := 5
+
+	# use the surrounding function with the correct index to get the specified tile
 	surroundIndex := v1
 	surroundCheck := hexPosition
 	nextSurroundingByte
 	
-
+	# this bit stinks
 	hexPosition2 := surroundTile
 	hexPosition3 := surroundTile
 	getHexType
 	
+	# should change this to a gameState register
 	if v0 == 1 begin 
 		v0 := 99
 		return
 	end
 
+	# if the key is valid, undraw the controls
 	drawControls
+
+	# update the currentTile and draw it
 	v0 := hexPosition3
 	i := currentTile
 	save v0
@@ -461,6 +491,7 @@ return
 return
 
 : getHexType
+	# all hex types are stored in storage
 	i := tileStorage
 	i += hexPosition2
 	v0 := 1
@@ -477,6 +508,7 @@ return
 
 	: turn
 	loop
+		# replace with state
 		if v0 != 99 then drawControls
 		keyInput
 	again
