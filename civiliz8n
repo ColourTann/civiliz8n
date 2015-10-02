@@ -24,7 +24,9 @@
 	
 	
 	
-	
+: splitPositions
+0x00
+0x00	
 
 : currentTile
 0b00000000
@@ -337,21 +339,29 @@ return
 return
 	
 : splitByteToXY
-	splitX := xySplit
-	v0 := 0b11110000
-	splitX &= v0
-	splitX >>= splitX
-	splitX >>= splitX
-	splitX >>= splitX
-	splitX >>= splitX
+	v0 := xySplit
+	v2 := 0b11110000
+	v0 &= v2
+	v0 >>= v0
+	v0 >>= v0
+	v0 >>= v0
+	v0 >>= v0
 
-	splitY := xySplit
-	v0 := 0b00001111
-	splitY &= v0
-	v0 := 4
+	v1 := xySplit
+	v2 := 0b00001111
+	v1 &= v2
+	
 
-	splitX -= v0
-	splitY -= v0
+	
+
+	v2 := 4
+	v0 -= v2
+	v1 -= v2
+
+	i := splitPositions
+	splitX := v0
+	splitY := v1
+
 return
 
 : setDrawPositionsFromXY
@@ -391,8 +401,6 @@ return
 			drawY += 248
 		again
 	end
-
-
 return
 
 : drawControls
