@@ -1,0 +1,492 @@
+#consts and aliases
+	:const startX 22
+	:const fiddlyStartX 21 #startX-1
+	:const fiddlyEndX 117 #fiddlyStartX + 9 * 11 - 3
+	:const fiddlyBotY 60 #startY + 8 * 7
+	:const centerX 66
+	:const centerY 29
+
+	:const startY 4
+
+
+	:alias keyPressed v0
+	:alias xySplit v3
+	:alias splitX v4
+	:alias splitY v5
+	:alias surroundCheck v6
+	:alias surroundTile v7
+	:alias surroundIndex v8
+	:alias hexPosition3 v9
+	:alias hexPosition2 va
+	:alias hexPosition vb
+	:alias drawX vc
+	:alias drawY vd
+	
+	
+	
+	
+
+: currentTile
+0b00000000
+
+#tilestorage 
+#I know I'm tossing like 200 bytes away here but I'm feeling lazy so what can you do?
+: tileStorage
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+
+
+
+#text
+
+	: textq
+	0b001100
+	0b010010
+	0b010010
+	0b010110
+	0b001110
+	: textw
+	0b100001
+	0b100001
+	0b100001
+	0b101101
+	0b010010
+	: texte
+	0b001110
+	0b010000
+	0b011100
+	0b010000
+	0b001110
+	: textd
+	0b011100
+	0b010010
+	0b010010
+	0b010010
+	0b011100
+	: texts
+	0b001110
+	0b010000
+	0b001100
+	0b000010
+	0b011100
+	: texta
+	0b001100
+	0b010010
+	0b011110
+	0b010010
+	0b010010
+	: text1
+	0b000100
+	0b001100
+	0b000100
+	0b000100
+	0b000100
+	: text2
+	0b001100
+	0b010010
+	0b000100
+	0b001000
+	0b011110
+	: text3
+	0b011100
+	0b000010
+	0b001100
+	0b000010
+	0b011100
+	: text4
+	0b010000
+	0b010100
+	0b010100
+	0b001110
+	0b000100
+	: text5
+	0b011110
+	0b010000
+	0b001100
+	0b000010
+	0b011100
+	: text6
+	0b001110
+	0b010000
+	0b011100
+	0b010010
+	0b001100
+	: text7
+	0b011110
+	0b000010
+	0b000100
+	0b001000
+	0b010000
+	: text8
+	0b001100
+	0b010010
+	0b001100
+	0b010010
+	0b001100
+	: text9
+	0b001100
+	0b010010
+	0b001110
+	0b000010
+	0b001100
+	: text0
+	0b001100
+	0b010010
+	0b010010
+	0b010010
+	0b001100
+
+#tiles#
+	
+	#00 is darkblue
+	#01 is green
+	#10 is brown
+	#11 is sand
+
+
+	: trees
+	0b00000000			
+	0b00000100
+	0b00000100
+	0b00000000
+	0b00010000
+	0b00010001
+	0b00000001
+
+	0b00001110			
+	0b00000000
+	0b00111000
+	0b00111011
+	0b00000011
+	0b00000000
+	0b00000000
+
+	0b00000000			
+	0b00000000
+	0b00000000
+	0b00100000
+	0b00100000
+	0b00000000
+	0b00000000
+
+	0b00000000			
+	0b01110000
+	0b01110000
+	0b10000000
+	0b10000000
+	0b00000000
+	0b00000000
+
+#setup grid stuff#
+
+	: bord_left 
+	0b00011111		
+	0b00100000
+	0b01000000
+	0b10000000
+
+	: bord_right
+	0b11100000
+	0b00010000
+	0b00001000
+	0b00000100
+
+	: bord_x_left
+	0b10000000
+	0b01000000
+	0b00100000
+	0b00010000
+
+	: bord_x_right
+	0b00000001
+	0b00000010
+	0b00000100
+	0b00001000
+
+	: bord_x_bot	
+	0b11111111
+
+
+
+: drawOutlines
+	drawX := startX 
+	drawY := startY
+
+: drawTops
+	loop
+		#draw top of hexagon split up into two parts
+		i  := bord_left
+		sprite drawX drawY 4
+		drawX += 8
+		i  := bord_right 	
+		sprite drawX drawY 4
+		drawX += 248		
+		drawY += 8
+		if drawY < 60 then 
+	again
+		
+	drawX += 11
+	v0 := 56
+	drawY -= v0
+	if drawY == startY begin
+		drawY := startY
+		drawY += 4
+	else 
+		drawY := startY
+	end
+	if drawX < 118 begin
+		drawTops	
+		return
+	end
+	
+	#draw fiddly bits
+
+	#fiddly lr bits
+	drawY := startY
+	drawY += 4
+	loop
+		i := bord_x_left
+		drawX := fiddlyStartX
+		sprite drawX drawY 4
+
+		i := bord_x_right
+		drawX := fiddlyEndX
+		sprite drawX drawY 4
+		
+		drawY += 8		
+	if drawY < 60 then again
+
+	#fiddly bot bits
+	drawY := fiddlyBotY
+	drawX := fiddlyStartX
+	drawX += 4
+	loop
+		i := bord_x_bot
+		sprite drawX drawY 1		
+		drawX += 22		
+	if drawX < 115 then again
+return
+
+: drawHex
+	i := currentTile
+	load v0
+	hexPosition := v0
+
+	i := tileStorage
+	hexPosition := hexPosition
+	i += v0
+	v0 := 1
+	save v0
+	xySplit := hexPosition
+	splitByteToXY
+	setDrawPositionsFromXY
+
+	i := trees
+	v2 := 7
+	plane 1
+	sprite drawX drawY 7
+	plane 2
+	i += v2
+	sprite drawX drawY 7
+	i += v2
+	drawX += 8
+	plane 1
+	sprite drawX drawY 7
+	i += v2
+	plane 2
+	sprite drawX drawY 7
+return
+
+: nextSurroundingByte
+	surroundTile := surroundCheck
+	if surroundIndex == 0 begin
+		surroundTile += 0b11110000
+	end
+	if surroundIndex == 1 begin
+		surroundTile += 255
+	end
+	if surroundIndex == 2 begin
+		surroundTile += 255
+		surroundTile += 0b00010000
+	end
+	if surroundIndex == 3 begin
+		surroundTile += 0b00010000
+	end
+	if surroundIndex == 4 begin
+		surroundTile += 1
+	end
+	if surroundIndex == 5 begin
+		surroundTile += 1
+		surroundTile += 0b11110000
+	end
+	surroundIndex += 1
+return
+	
+: splitByteToXY
+	splitX := xySplit
+	v0 := 0b11110000
+	splitX &= v0
+	splitX >>= splitX
+	splitX >>= splitX
+	splitX >>= splitX
+	splitX >>= splitX
+
+	splitY := xySplit
+	v0 := 0b00001111
+	splitY &= v0
+	v0 := 4
+
+	splitX -= v0
+	splitY -= v0
+return
+
+: setDrawPositionsFromXY
+	drawX := centerX
+	drawY := centerY
+
+	if splitX < 100 begin 
+		loop
+			while splitX != 0 
+			splitX += 255
+			drawX += 11
+			drawY += 4
+		again
+	end
+
+	if splitX > 100 begin 
+		loop
+			while splitX != 0 
+			splitX += 1
+			drawX += 245
+			drawY += 252
+		again
+	end
+
+	if splitY < 100 begin
+		loop
+			while splitY != 0 
+			splitY += 255
+			drawY += 8
+		again
+	end
+
+	if splitY > 100 begin
+		loop
+			while splitY != 0 
+			splitY += 1
+			drawY += 248
+		again
+	end
+
+
+return
+
+: drawControls
+	plane 1
+	surroundIndex := 0
+	surroundCheck := hexPosition
+	loop
+		nextSurroundingByte
+		hexPosition2 := surroundTile
+		getHexType
+		if v0 == 1 begin
+		 skipControlDraw
+		 return
+		end
+
+		xySplit := surroundTile
+		splitByteToXY
+		setDrawPositionsFromXY
+		i := textq
+		v0 := surroundIndex
+		v0 += 255
+		i += v0
+		i += v0
+		i += v0
+		i += v0
+		i += v0
+		drawX += 2
+		drawY += 1
+		sprite drawX drawY 5
+		: skipControlDraw
+	if surroundIndex < 6 then again
+
+return
+
+: keyInput	
+
+	keyPressed := key
+	
+	if keyPressed == 4 then v1 := 0
+	if keyPressed == 5 then v1 := 1
+	if keyPressed == 6 then v1 := 2
+	if keyPressed == 9 then v1 := 3
+	if keyPressed == 8 then v1 := 4
+	if keyPressed == 7 then v1 := 5
+	surroundIndex := v1
+	surroundCheck := hexPosition
+	nextSurroundingByte
+	
+
+	hexPosition2 := surroundTile
+	hexPosition3 := surroundTile
+	getHexType
+	
+	if v0 == 1 begin 
+		v0 := 99
+		return
+	end
+
+	drawControls
+	v0 := hexPosition3
+	i := currentTile
+	save v0
+	drawHex
+return
+
+: getHexType
+	i := tileStorage
+	i += hexPosition2
+	v0 := 1
+	load v0
+return
+
+: main
+	hires
+	drawOutlines 
+	v0 := 0b01100100
+	i := currentTile
+	save v0
+	drawHex
+
+	: turn
+	loop
+		if v0 != 99 then drawControls
+		keyInput
+	again
+	
+
+
+	
+
+
+
+			
+	
+	
+
+
