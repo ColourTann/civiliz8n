@@ -27,6 +27,7 @@
 	:alias surroundTile v6
 	:alias surroundIndex v7
 	:alias hexPosition3 v8
+	:alias hexPosition3 v8
 	:alias hexPosition2 v9
 	:alias hexPosition va
 	:alias drawX vb
@@ -40,9 +41,14 @@
 	0x00	
 
 	: selectedTileIndex
-	0xff
+	0x00
 
 	: currentTile
+	0x00
+
+	: tileTypes
+	0x00
+	0x00
 	0x00
 
 : tileStorage
@@ -118,6 +124,13 @@
 		0x0 0xf 0x18 0x30 0x70 0x38 0x18 0xf 
 		0x0 0xf0 0xf8 0xfc 0xfe 0x7c 0x78 0xf0 
 		0x0 0xf0 0x18 0xc 0xe 0x1c 0x18 0xf0 
+
+	: shrine
+		0x0 0xf 0x1c 0x38 0x79 0x38 0x18 0xf 
+		0x0 0xf 0x1c 0x39 0x7b 0x39 0x18 0xf 
+		0x0 0xf0 0x38 0x1c 0x9e 0x1c 0x18 0xf0  
+		0x0 0xf0 0x38 0x9c 0xde 0x9c 0x18 0xf0  
+
 
 #setup grid stuff#
 
@@ -210,6 +223,17 @@
 		if drawX < 115 then again
 
 		drawPickers
+
+		i := tileTypes
+		v0 := 0
+		v1 := 1
+		v2 := 2
+		save v2
+
+		fillPickers
+
+
+		plane 1
 		v0 := 0
 		drawPickerText
 		v0 := 1
@@ -223,8 +247,6 @@
 		
 		drawX := choiceStartX
 		drawY := choiceStartY
-
-	
 
 		loop
 
@@ -242,10 +264,30 @@
 			drawY += 248
 			drawY += choiceGap
 
-			
-			
+		if drawY < 60 then again
+
+		return
+
+	: fillPickers
+		drawX := choiceStartX
+		drawY := choiceStartY
+		v1 := 0
+		loop
+			i := tileTypes
+			i += v1
+			load v0
+			if v0 == 0 then i := hut
+			if v0 == 1 then i := trees
+			if v0 == 2 then i := shrine
+
+			drawX := choiceStartX
+
+			drawHex
+			drawY += choiceGap
+			v1 += 1
 		if drawY < 60 then again
 		return
+
 
 	: drawPickerText
 		drawX := choiceTextX
@@ -271,7 +313,7 @@
 		
 		return	
 
-: drawHex
+: fillCurrentHex
 
 	# currentTile holds the tile Position
 	i := currentTile
@@ -291,12 +333,22 @@
 
 	drawX += 255
 	drawY += 255
-
-	# have do 4 draw calls, 2 with each bitplane
 	
-	v0 := random 0b00000001
+	i := selectedTileIndex
+	load v0
 	if v0 == 0 then i := hut
 	if v0 == 1 then i := trees
+	if v0 == 2 then i := shrine
+
+	drawHex
+
+	return
+
+: drawHex
+
+
+
+	# have do 4 draw calls, 2 with each bitplane
 
 	v2 := 8
 	plane 1
@@ -522,7 +574,10 @@
 	v0 := hexPosition3
 	i := currentTile
 	save v0
-	drawHex
+
+
+
+	fillCurrentHex
 	return
 
 : getHexType
@@ -537,10 +592,21 @@
 	hires
 	gameState := state_drawing
 	drawOutlines 
+
+	plane 2
+	v1 := 0
+	drawPickerText	
+
+
+
 	v0 := 0b10001000
 	i := currentTile
 	save v0
-	drawHex
+
+
+
+	# draw starting hex
+	fillCurrentHex
 
 
 	: turn
