@@ -800,6 +800,8 @@
 			i := tileStorage
 			i += surroundTile
 			load v0
+			v1 := tileTypeMask
+			v0 &= v1
 			if v0 < 6 begin # all placeable tiles are 0-5
 				addToMeeting
 			end
