@@ -1,4 +1,4 @@
-#consts and aliases
+# consts and aliases
 	:const startX 22
 	:const fiddlyStartX 21 #startX-1
 	:const fiddlyEndX 117 #fiddlyStartX + 9 * 11 - 3
@@ -15,30 +15,33 @@
 
 	:const textGap 5
 
-	:const scoreX 0
+	:const scoreX 1
 	:const scoreY 3
+
+	:const turnsX 4
+	:const turnsY 11
+	:const turnsGap 3
+	:const numTurns 10
 
 	#states
 	:const state_drawing 0
 	:const state_waitingForInput 1
 	:const state_incorrectInput 2
 
-
 	:alias keyPressed v0
 	:alias splitX v0
 	:alias splitY v1
 	:alias xySplit v3
 	:alias surroundCheck v5
-	:alias counter v5
 	:alias hexX v6
 	:alias surroundTile v6
 	:alias hexY v7
 	:alias surroundIndex v7
+	:alias counter v8
 	:alias hexPosition2 v9
 	:alias calculatedDistance v9
 	:alias distCalcHelper va
 	:alias hexPosition va
-	:alias scoreAdd va
 	:alias drawX vb
 	:alias drawY vc
 	:alias gameState vd
@@ -58,12 +61,17 @@
 	: tileTypes
 	0x00 0x00 0x00
 	
+	: scoreAdd
+	0x00
+
 	: score
 	0x00
 
 	: decimalScore
 	0x00 0x00 0x00
-	
+
+	: turnNumber
+	0x00
 
 : tileStorage
 	# I know I'm tossing like 200 bytes away here but I'm feeling lazy so what can you do?
@@ -85,109 +93,90 @@
 	0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 
 	0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 
 
-#text
-	: textq
-	0xc 0x12 0x12 0x14 0xa 
-	: textw
-	0x21 0x21 0x21 0x2d 0x12 
-	: texte
-	0xe 0x10 0x1c 0x10 0xe 
-	: textd
-	0x1c 0x12 0x12 0x12 0x1c 
-	: texts
-	0xe 0x10 0xc 0x2 0x1c 
-	: texta
-	0xc 0x12 0x1e 0x12 0x12 
-	: text0
-	0xc 0x12 0x12 0x12 0xc 
-	: text1
-	0x4 0xc 0x4 0x4 0x4 
-	: text2
-	0xc 0x12 0x4 0x8 0x1e 
-	: text3
-	0x1c 0x2 0xc 0x2 0x1c 
-	: text4
-	0x10 0x14 0x14 0x1e 0x4 
-	: text5
-	0x1e 0x10 0xc 0x2 0x1c 
-	: text6
-	0xe 0x10 0x1c 0x12 0xc 
-	: text7
-	0x1e 0x2 0x4 0x8 0x10 
-	: text8
-	0xc 0x12 0xc 0x12 0xc 
-	: text9
-	0xc 0x12 0xe 0x2 0xc 
-
-#tiles#
+# images 
 	
-	#00 is darkblue
-	#01 is green
-	#10 is brown
-	#11 is sand
+	: turnBlip
+		0b11000000
+		0b11000000
 
-
-	
-: placeableTiles
-	: hut
-		0x0 0xf 0x1f 0x3e 0x7f 0x3f 0x1b 0xf 
-		0x0 0xf 0x1c 0x3c 0x7f 0x31 0x11 0xf 
-		0x0 0xf0 0xf8 0xfc 0xfe 0xec 0xf8 0xf0 
-		0x0 0xf0 0x78 0x7c 0xc6 0xc4 0xf8 0xf0 
-
-	: shrine
-		0x0 0xf 0x1c 0x39 0x78 0x3b 0x18 0xf 
-		0x0 0xf 0x1c 0x38 0x78 0x38 0x18 0xf 
-		0x0 0xf0 0x38 0x9c 0x1e 0xdc 0x18 0xf0 
-		0x0 0xf0 0x38 0x1c 0x1e 0x1c 0x18 0xf0 
-
-	: logger
-		0x0 0xf 0x1f 0x3d 0x7a 0x37 0x1d 0xf 
-		0x0 0xf 0x7 0x3f 0x7d 0x38 0x18 0xf 
-		0x0 0xf0 0xf8 0xfc 0xfe 0x7c 0xf8 0xf0 
-		0x0 0xf0 0x38 0xe4 0xfe 0xcc 0xf8 0x90 
-
-	: temple
-		0x0 0xe 0x1e 0x3c 0x7c 0x38 0x18 0xf 
-		0x0 0xe 0x1e 0x3c 0x7d 0x38 0x1a 0xf 
-		0x0 0x70 0x78 0x3c 0x3e 0x1c 0x18 0xf0 
-		0x0 0x70 0x78 0x3c 0xbe 0x1c 0x58 0xf0 
-
-	: road
-		0x0 0xf 0x1f 0x3f 0x7f 0x3f 0x1f 0xf 
-		0x0 0xf 0x1e 0x3e 0x70 0x26 0xf 0xf 
-		0x0 0xf0 0xf8 0xfc 0xfe 0xfc 0xf8 0xf0 
-		0x0 0x70 0x70 0xe4 0xee 0x4c 0x18 0xf0 
-
-	: meeting
-		0x0 0xf 0x1c 0x3b 0x7b 0x3b 0x1c 0xf 
-		0x0 0xf 0x1c 0x3b 0x7b 0x3b 0x1c 0xf 
-		0x0 0xf0 0x38 0xdc 0xde 0xdc 0x38 0xf0 
-		0x0 0xf0 0x38 0xdc 0xde 0xdc 0x38 0xf0 
-
-	: trees
-		0x0 0xc 0x3 0x23 0x7f 0x38 0x18 0xf 
-		0x0 0xf 0x1e 0x3e 0x77 0x37 0x1f 0xd 
-		0x0 0x40 0xc0 0xfc 0x8e 0x8c 0xf8 0xf0 
-		0x0 0xf0 0xf8 0xec 0xfe 0xfc 0xd8 0xd0 	
-
-
+	# text
+		: textq
+		0xc 0x12 0x12 0x14 0xa 
+		: textw
+		0x21 0x21 0x21 0x2d 0x12 
+		: texte
+		0xe 0x10 0x1c 0x10 0xe 
+		: textd
+		0x1c 0x12 0x12 0x12 0x1c 
+		: texts
+		0xe 0x10 0xc 0x2 0x1c 
+		: texta
+		0xc 0x12 0x1e 0x12 0x12 
+		: text0
+		0xc 0x12 0x12 0x12 0xc 
+		: text1
+		0x4 0xc 0x4 0x4 0x4 
+		: text2
+		0xc 0x12 0x4 0x8 0x1e 
+		: text3
+		0x1c 0x2 0xc 0x2 0x1c 
+		: text4
+		0x10 0x14 0x14 0x1e 0x4 
+		: text5
+		0x1e 0x10 0xc 0x2 0x1c 
+		: text6
+		0xe 0x10 0x1c 0x12 0xc 
+		: text7
+		0x1e 0x2 0x4 0x8 0x10 
+		: text8
+		0xc 0x12 0xc 0x12 0xc 
+		: text9
+		0xc 0x12 0xe 0x2 0xc 
 		
-		
-		
+	: placeableTiles
+		: hut
+			0x0 0xf 0x1f 0x3e 0x7f 0x3f 0x1b 0xf 
+			0x0 0xf 0x1c 0x3c 0x7f 0x31 0x11 0xf 
+			0x0 0xf0 0xf8 0xfc 0xfe 0xec 0xf8 0xf0 
+			0x0 0xf0 0x78 0x7c 0xc6 0xc4 0xf8 0xf0 
 
-: random6
-	loop
-		v0 := random 0b00000111
-	if v0 > 5 then again
-	return
-	
+		: shrine
+			0x0 0xf 0x1c 0x39 0x78 0x3b 0x18 0xf 
+			0x0 0xf 0x1c 0x38 0x78 0x38 0x18 0xf 
+			0x0 0xf0 0x38 0x9c 0x1e 0xdc 0x18 0xf0 
+			0x0 0xf0 0x38 0x1c 0x1e 0x1c 0x18 0xf0 
 
-#setup grid stuff#
+		: logger
+			0x0 0xf 0x1f 0x3d 0x7a 0x37 0x1d 0xf 
+			0x0 0xf 0x7 0x3f 0x7d 0x38 0x18 0xf 
+			0x0 0xf0 0xf8 0xfc 0xfe 0x7c 0xf8 0xf0 
+			0x0 0xf0 0x38 0xe4 0xfe 0xcc 0xf8 0x90 
 
+		: temple
+			0x0 0xe 0x1e 0x3c 0x7c 0x38 0x18 0xf 
+			0x0 0xe 0x1e 0x3c 0x7d 0x38 0x1a 0xf 
+			0x0 0x70 0x78 0x3c 0x3e 0x1c 0x18 0xf0 
+			0x0 0x70 0x78 0x3c 0xbe 0x1c 0x58 0xf0 
 
+		: road
+			0x0 0xf 0x1f 0x3f 0x7f 0x3f 0x1f 0xf 
+			0x0 0xf 0x1e 0x3e 0x70 0x26 0xf 0xf 
+			0x0 0xf0 0xf8 0xfc 0xfe 0xfc 0xf8 0xf0 
+			0x0 0x70 0x70 0xe4 0xee 0x4c 0x18 0xf0 
 
+		: meeting
+			0x0 0xf 0x1c 0x3b 0x7b 0x3b 0x1c 0xf 
+			0x0 0xf 0x1c 0x3b 0x7b 0x3b 0x1c 0xf 
+			0x0 0xf0 0x38 0xdc 0xde 0xdc 0x38 0xf0 
+			0x0 0xf0 0x38 0xdc 0xde 0xdc 0x38 0xf0 
 
+		: trees
+			0x0 0xc 0x3 0x23 0x7f 0x38 0x18 0xf 
+			0x0 0xf 0x1e 0x3e 0x77 0x37 0x1f 0xd 
+			0x0 0x40 0xc0 0xfc 0x8e 0x8c 0xf8 0xf0 
+			0x0 0xf0 0xf8 0xec 0xfe 0xfc 0xd8 0xd0 			
+
+# setup stuff
 
 	: all_of_border_except_bottom_row
 	0xf 0x10 0x20 0x40 0x80 0x40 0x20 0x10 0xf0 0x8 0x4 0x2 0x1 0x2 0x4 0x8 
@@ -219,66 +208,119 @@
 	: bord_x_bot	
 	0b11111111
 
-: drawOutlines
-	# draw all the outlines of the tiles in the hex grid
-	plane 1
-	drawX := startX 
-	drawY := startY
+	: setupGame
+		hires
+		gameState := state_drawing
 
-	: drawTops
-		loop
-			# draw top of hexagon split up into two parts
-			i  := bord_left
-			sprite drawX drawY 4
-			drawX += 8
-			i  := bord_right 	
-			sprite drawX drawY 4
-			drawX += 248		
-			drawY += 8
-			if drawY < 60 then 
-		again
+		# first draw the outlines	
+		drawOutlines
 		
-		# funny business because fuck hexagons
-		drawX += 11
-		v0 := 56
-		drawY -= v0
-		if drawY == startY begin
+
+		# set the starting tile to the center
+		v0 := 0b10001000
+		i := currentTile
+		save v0
+		
+		# setup starting tile to be shrine
+		i := tileTypes
+		v0 := 1
+		save v0
+
+		# draw the starting hex
+		fillCurrentHex
+
+		# draw the picker outlines
+		drawPickers
+
+		# setup starting pickers
+		randomiseChoices	
+		fillPickers
+
+		# draw the picker numbers
+		drawAllPickerText
+
+		# draw the highlighted picker number
+		plane 2
+		v1 := 0
+		drawPickerText	
+
+		# draw the score
+		drawScore
+
+		setupTurnBlips
+		resetTurnCount
+
+		setupTreePositions
+		
+		
+
+		# draw the controls, ready to go!
+		i := currentTile
+		load v0
+		hexPosition := v0
+		drawControls
+		return
+
+	: drawOutlines
+		# draw all the outlines of the tiles in the hex grid
+		plane 1
+		drawX := startX 
+		drawY := startY
+
+		: drawTops
+			loop
+				# draw top of hexagon split up into two parts
+				i  := bord_left
+				sprite drawX drawY 4
+				drawX += 8
+				i  := bord_right 	
+				sprite drawX drawY 4
+				drawX += 248		
+				drawY += 8
+				if drawY < 60 then 
+			again
+			
+			# funny business because fuck hexagons
+			drawX += 11
+			v0 := 56
+			drawY -= v0
+			if drawY == startY begin
+				drawY := startY
+				drawY += 4
+			else 
+				drawY := startY
+			end
+			if drawX < 118 begin
+				drawTops	
+				return
+			end
+			
+
+			# fiddly lr bits
 			drawY := startY
 			drawY += 4
-		else 
-			drawY := startY
-		end
-		if drawX < 118 begin
-			drawTops	
-			return
-		end
-		
+			loop
+				i := bord_x_left
+				drawX := fiddlyStartX
+				sprite drawX drawY 4
 
-		# fiddly lr bits
-		drawY := startY
-		drawY += 4
-		loop
-			i := bord_x_left
+				i := bord_x_right
+				drawX := fiddlyEndX
+				sprite drawX drawY 4
+				
+				drawY += 8		
+			if drawY < 60 then again
+
+			# fiddly bot bits
+			drawY := fiddlyBotY
 			drawX := fiddlyStartX
-			sprite drawX drawY 4
-
-			i := bord_x_right
-			drawX := fiddlyEndX
-			sprite drawX drawY 4
-			
-			drawY += 8		
-		if drawY < 60 then again
-
-		# fiddly bot bits
-		drawY := fiddlyBotY
-		drawX := fiddlyStartX
-		drawX += 4
-		loop
-			i := bord_x_bot
-			sprite drawX drawY 1		
-			drawX += 22		
-		if drawX < 115 then again
-		return
+			drawX += 4
+			loop
+				i := bord_x_bot
+				sprite drawX drawY 1		
+				drawX += 22		
+			if drawX < 115 then again
+			return
 
 	: drawAllPickerText
 		plane 1
@@ -317,6 +359,99 @@
 
 		return
 
+	: setupTreePositions
+
+		# make 12 trees
+		counter := 12
+		loop
+			while counter > 0
+
+			# make sure the x coordinate is in bounds
+			loop 
+				splitX := random 0b00001111
+				if splitX > 8 then again
+			splitX += 252
+				
+			# make sure the y coordinate is in bounds
+			loop
+				splitY := random 0b00001111
+				if splitY > 11 then again
+			splitY += 251
+
+			# addTree adds one to counter if it fails
+			addTree
+			counter += 255
+			again
+
+		return
+
+	: addTree
+		
+		# keep track of potential x and y
+		hexX := splitX
+		hexY := splitY
+	 
+	 	# get the distance
+		getHexDistance
+
+		# fail if adjacent to starting location to avoid locking the player in. Plus it looks weird
+		if calculatedDistance < 2 begin
+			counter += 1
+			return
+		end
+
+		# find the tile type byte
+		splitXYToByte
+		hexPosition := xySplit
+		i := tileStorage
+		i += hexPosition
+		load v0
+
+		# if it's occupied, fail
+		if v0 != 0 begin
+			counter += 1
+			return
+		end
+
+		# save tile type
+		i := tileStorage
+		i += hexPosition
+		v0 := 5
+		save v0
+
+		# get the original x and y again
+		xySplit := hexPosition
+		splitByteToXY
+
+		# draw the tree and we're DONE IM GONNA GO AND DO SOMETHING ELSE FOR A BIT NOW
+		setDrawPositionsFromXY
+		i := trees
+		drawHex
+
+		return
+
+	: setupTurnBlips
+
+		counter := 0
+		loop
+			while counter < numTurns
+			i := turnNumber
+			v0 := counter
+			save v0
+			drawTurnBlip
+			counter += 1
+		again
+
+		return
+
+	: resetTurnCount
+		v0 := 0
+		i := turnNumber
+		save v0
+		return
+
+# drawing stuff
+
 	: fillPickers
 		# draw the insides of the tiles you can pick
 		drawY := choiceStartY
@@ -345,7 +480,6 @@
 		if v1 < 3 then again
 		return
 
-
 	: drawPickerText
 		# picker text is the 1|2|3 above the tiles
 		drawX := choiceTextX
@@ -365,69 +499,172 @@
 		drawY += choiceGap
 		return	
 
-	: randomiseChoices
-		# generate 3 numbers from 0-5 and save them in the choice slots
+	: fillCurrentHex
+
+		# currentTile holds the tile Position
+		i := currentTile
+		load v0
+		hexPosition := v0
+
+		# save 1 in tileStorage to keep track of the fact this tile has been used
+		i := tileStorage
+		i += v0
+		v0 := 1
+		save v0
+
+		# get the screen position
+		xySplit := hexPosition
+		splitByteToXY
+		setDrawPositionsFromXY
+
+		
+		i := selectedTileIndex
+		load v0
 		i := tileTypes
-		random6
-		v2 := v0
-		random6
-		v1 := v0
-		random6
-		save v2
+		i += v0
+		load v0
+		i := hut
+		v1 := 32
+		loop
+			while v0 > 0
+			i += v1
+			v0 += 255
+		again
+		drawHex
 		return
 
-: fillCurrentHex
+	: drawHex
 
-	# currentTile holds the tile Position
-	i := currentTile
-	load v0
-	hexPosition := v0
+		# have do 4 draw calls, 2 with each bitplane
+		v2 := 8
+		plane 1
+		sprite drawX drawY 8
+		plane 2
+		i += v2
+		sprite drawX drawY 8
+		i += v2
+		drawX += 8
+		plane 1
+		sprite drawX drawY 8
+		i += v2
+		plane 2
+		sprite drawX drawY 8
 
-	# save 1 in tileStorage to keep track of the fact this tile has been used
-	i := tileStorage
-	i += v0
-	v0 := 1
-	save v0
+		return
 
-	# get the screen position
-	xySplit := hexPosition
-	splitByteToXY
-	setDrawPositionsFromXY
-
+	: drawControls
 	
-	i := selectedTileIndex
-	load v0
-	i := tileTypes
-	i += v0
-	load v0
-	i := hut
-	v1 := 32
-	loop
-		while v0 > 0
-		i += v1
-		v0 += 255
-	again
-	drawHex
-	return
+		# draws controls in surrounding tiles
+		plane 1
+		surroundIndex := 0
+		surroundCheck := hexPosition
+		loop
+			nextSurroundingByte
+			hexPosition2 := surroundTile
+			getHexType
+			if v0 != 0x00 begin
+				# skips occupied tiles
+			 	skipControlDraw
+			 	return
+			end
+			
 
-: drawHex
+			xySplit := surroundTile
+			splitByteToXY
+			setDrawPositionsFromXY
+			i := textq
+			v0 := surroundIndex
+			v0 += 255
+			i += v0
+			i += v0
+			i += v0
+			i += v0
+			i += v0
+			drawX += 3
+			drawY += 2
+			sprite drawX drawY 5
+			: skipControlDraw
+		if surroundIndex < 6 then again
+		return
 
-	# have do 4 draw calls, 2 with each bitplane
-	v2 := 8
-	plane 1
-	sprite drawX drawY 8
-	plane 2
-	i += v2
-	sprite drawX drawY 8
-	i += v2
-	drawX += 8
-	plane 1
-	sprite drawX drawY 8
-	i += v2
-	plane 2
-	sprite drawX drawY 8
+	: drawScore
+		plane 1
+		i := score
+		load v0
+		i := decimalScore
+		bcd v0
+		i := decimalScore
+		load v2
+		drawX := scoreX
+		drawY := scoreY
 
-	return
+		# gap between digits
+		v4 := 5
+
+		# v3 counter keeps track of which digit to be drawing
+		v3 := 0
+
+		loop		
+			
+			if v3 == 0 then v5 := v0
+			if v3 == 1 then v5 := v1
+			if v3 == 2 then v5 := v2
+			i := text0	
+			loop
+				while v0 > 0
+				i += v4
+				v0 += 255
+			again
+			sprite drawX drawY 5
+			v3 += 1
+			drawX += textGap
+		if v3 < 3 then again	
+		return
+
+	: drawTurnBlip
+		i := turnNumber 
+		drawX := turnsX
+		drawY := turnsY
+		load v0
+		loop
+			while v0 > 4
+			drawY += turnsGap
+			v0 += -5
+		again
+		loop
+			while v0 > 0
+			drawX += turnsGap
+			v0 += -1
+		again
+
+		i := turnBlip
+		sprite drawX drawY 2
+
+		return
+
+# place tile effects
+	# called immediately after setting the new tile
+	: placeLogger
+		i := currentTile
+		load v0
+		surroundCheck := v0
+		counter := 0
+		surroundIndex := 0
+		loop 
+			while counter < 6
+			nextSurroundingByte
+			i := tileStorage
+			i += surroundTile
+			load v0
+			if v0 != 0 begin
+				i := tileStorage
+				i += surroundTile
+				
+			end
+			counter += 1
+		again
+
+		return
 
 : nextSurroundingByte
 		
@@ -526,39 +763,95 @@
 	end
 	return
 
-: drawControls
-	
-	# draws controls in surrounding tiles
-	plane 1
-	surroundIndex := 0
-	surroundCheck := hexPosition
+: random6
 	loop
-		nextSurroundingByte
-		hexPosition2 := surroundTile
-		getHexType
-		if v0 != 0x00 begin
-			# skips occupied tiles
-		 	skipControlDraw
-		 	return
-		end
-		
+		v0 := random 0b00000111
+	if v0 > 5 then again
+	return
 
-		xySplit := surroundTile
-		splitByteToXY
-		setDrawPositionsFromXY
-		i := textq
-		v0 := surroundIndex
-		v0 += 255
-		i += v0
-		i += v0
-		i += v0
-		i += v0
-		i += v0
-		drawX += 3
-		drawY += 2
-		sprite drawX drawY 5
-		: skipControlDraw
-	if surroundIndex < 6 then again
+: randomiseChoices
+	# generate 3 numbers from 0-5 and save them in the choice slots
+	i := tileTypes
+	random6
+	v2 := v0
+	random6
+	v1 := v0
+	random6
+	save v2
+	return
+
+: getHexType
+	# all hex types are stored in storage
+	i := tileStorage
+	i += hexPosition2
+	v0 := 1
+	load v0
+	return
+
+: updateScore
+	drawScore
+
+	i := score
+	load v0
+	v1 := v0
+	i := scoreAdd
+	load v0
+	v0 += v1
+	i := score
+	save v0
+
+	drawScore	
+	return
+
+: getHexDistance
+
+	# hex distance is max(abs(x), abs(y), abs(x+y)),  which is a bit tricky to translate to chip8...
+
+	calculatedDistance := 0
+
+	# x+y
+	v2 := hexX
+	v2 += hexY	
+
+	# abs x
+	if hexX > 200 begin
+		distCalcHelper := hexX
+		hexX -= distCalcHelper
+		hexX -= distCalcHelper
+	end
+
+	# abs y
+	if hexY > 200 begin
+		distCalcHelper := hexY
+		hexY -= distCalcHelper
+		hexY -= distCalcHelper
+	end
+
+	# abs x+y
+	if v2 > 200 begin
+		distCalcHelper := v2
+		v2 -= distCalcHelper
+		v2 -= distCalcHelper
+	end
+
+
+	# calculate max
+	if hexX > calculatedDistance then calculatedDistance := hexX
+	if hexY > calculatedDistance then calculatedDistance := hexY
+	if v2 > calculatedDistance then calculatedDistance := v2
+
+	return
+
+: splitXYToByte
+	# 0b10001000 is 0,0 because I liked centered grids!
+	xySplit := splitX
+	xySplit += 8
+	xySplit <<= xySplit
+	xySplit <<= xySplit
+	xySplit <<= xySplit
+	xySplit <<= xySplit
+	xySplit += splitY
+	xySplit += 8
 	return
 
 : keyInput	
@@ -646,242 +939,26 @@
 	fillCurrentHex
 	return
 
-: getHexType
-	# all hex types are stored in storage
-	i := tileStorage
-	i += hexPosition2
-	v0 := 1
-	load v0
-	return
-
-: drawScore
-	plane 1
-	i := score
-	load v0
-	i := decimalScore
-	bcd v0
-	i := decimalScore
-	load v2
-	drawX := scoreX
-	drawY := scoreY
-
-	# gap between digits
-	v4 := 5
-
-	# v3 counter keeps track of which digit to be drawing
-	v3 := 0
-
-	loop		
-		
-		if v3 == 0 then v5 := v0
-		if v3 == 1 then v5 := v1
-		if v3 == 2 then v5 := v2
-		i := text0	
-		loop
-			while v0 > 0
-			i += v4
-			v0 += 255
-		again
-		sprite drawX drawY 5
-		v3 += 1
-		drawX += textGap
-	if v3 < 3 then again
-
-
+: incrementTurn
 	
-	return
-
-: updateScore
-	drawScore
-
-	i := score
-	load v0
-	v0 += scoreAdd
-	i := score
-	save v0
-
-	drawScore	
-	return
-
-: addTree
-	
-	# keep track of potential x and y
-	hexX := splitX
-	hexY := splitY
- 
- 	# get the distance
-	getHexDistance
-
-	# fail if adjacent to starting location to avoid locking the player in. Plus it looks weird
-	if calculatedDistance < 2 begin
-		counter += 1
-		return
-	end
-
-	# find the tile type byte
-	splitXYToByte
-	hexPosition := xySplit
-	i := tileStorage
-	i += hexPosition
-	load v0
-
-	# if it's occupied, fail
-	if v0 != 0 begin
-		counter += 1
-		return
-	end
-
-	# save tile type
-	i := tileStorage
-	i += hexPosition
-	v0 := 5
-	save v0
-
-	# get the original x and y again
-	xySplit := hexPosition
-	splitByteToXY
-
-	# draw the tree and we're DONE IM GONNA GO AND DO SOMETHING ELSE FOR A BIT NOW
-	setDrawPositionsFromXY
-	i := trees
-	drawHex
-
-	return
-
-: getHexDistance
-
-	# hex distance is max(abs(x), abs(y), abs(x+y)),  which is a bit tricky to translate to chip8...
-
-	calculatedDistance := 0
-
-	# x+y
-	v2 := hexX
-	v2 += hexY	
-
-	# abs x
-	if hexX > 200 begin
-		distCalcHelper := hexX
-		hexX -= distCalcHelper
-		hexX -= distCalcHelper
-	end
-
-	# abs y
-	if hexY > 200 begin
-		distCalcHelper := hexY
-		hexY -= distCalcHelper
-		hexY -= distCalcHelper
-	end
-
-	# abs x+y
-	if v2 > 200 begin
-		distCalcHelper := v2
-		v2 -= distCalcHelper
-		v2 -= distCalcHelper
-	end
-
-
-	# calculate max
-	if hexX > calculatedDistance then calculatedDistance := hexX
-	if hexY > calculatedDistance then calculatedDistance := hexY
-	if v2 > calculatedDistance then calculatedDistance := v2
-
-	return
-
-
-: splitXYToByte
-	# 0b10001000 is 0,0 because I liked centered grids!
-	xySplit := splitX
-	xySplit += 8
-	xySplit <<= xySplit
-	xySplit <<= xySplit
-	xySplit <<= xySplit
-	xySplit <<= xySplit
-	xySplit += splitY
-	xySplit += 8
-	return
-
-: setupTreePositions
-
-	# make 12 trees
-	counter := 12
-	loop
-		while counter > 0
-
-		# make sure the x coordinate is in bounds
-		loop 
-			splitX := random 0b00001111
-			if splitX > 8 then again
-		splitX += 252
-			
-		# make sure the y coordinate is in bounds
-		loop
-			splitY := random 0b00001111
-			if splitY > 11 then again
-		splitY += 251
-
-		# addTree adds one to counter if it fails
-		addTree
-		counter += 255
-		again
-
-	return
-
-: setupGame
-	hires
-	gameState := state_drawing
-
-	# first draw the outlines	
-	drawOutlines
-	
-
-	# set the starting tile to the center
-	v0 := 0b10001000
-	i := currentTile
-	save v0
-	
-	# setup starting tile to be shrine
-	i := tileTypes
-	v0 := 1
-	save v0
-
-	# draw the starting hex
-	fillCurrentHex
-
-	# draw the picker outlines
-	drawPickers
-
-	# setup starting pickers
-	randomiseChoices	
-	fillPickers
-
-	# draw the picker numbers
-	drawAllPickerText
-
-	# draw the highlighted picker number
 	plane 2
-	v1 := 0
-	drawPickerText	
-
-	setupTreePositions
-	
-	# draw the score
-	drawScore
-
-	# draw the controls, ready to go!
-	i := currentTile
+	drawTurnBlip
+	i := turnNumber
 	load v0
-	hexPosition := v0
-	drawControls
+	i := turnNumber
+	v0 += 1
+	save v0
+
 	return
 
 : main
 	setupGame
 	start
-
-
 	: turn
 	loop
 		if gameState != state_incorrectInput begin
+			incrementTurn
+			placeLogger
 			fillPickers
 			randomiseChoices
 			fillPickers
@@ -890,4 +967,3 @@
 		: start
 		keyInput
 	again
-
