@@ -35,6 +35,8 @@
 	:alias hexY v7
 	:alias surroundIndex v7
 	:alias hexPosition2 v9
+	:alias calculatedDistance v9
+	:alias distCalcHelper va
 	:alias hexPosition va
 	:alias scoreAdd va
 	:alias drawX vb
@@ -218,13 +220,14 @@
 	0b11111111
 
 : drawOutlines
+	# draw all the outlines of the tiles in the hex grid
 	plane 1
 	drawX := startX 
 	drawY := startY
 
 	: drawTops
 		loop
-			#draw top of hexagon split up into two parts
+			# draw top of hexagon split up into two parts
 			i  := bord_left
 			sprite drawX drawY 4
 			drawX += 8
@@ -234,7 +237,8 @@
 			drawY += 8
 			if drawY < 60 then 
 		again
-			
+		
+		# funny business because fuck hexagons
 		drawX += 11
 		v0 := 56
 		drawY -= v0
@@ -249,9 +253,8 @@
 			return
 		end
 		
-		#draw fiddly bits
 
-		#fiddly lr bits
+		# fiddly lr bits
 		drawY := startY
 		drawY += 4
 		loop
@@ -266,7 +269,7 @@
 			drawY += 8		
 		if drawY < 60 then again
 
-		#fiddly bot bits
+		# fiddly bot bits
 		drawY := fiddlyBotY
 		drawX := fiddlyStartX
 		drawX += 4
@@ -288,12 +291,14 @@
 		return
 
 	: drawPickers
+
+		# boring function that draws the outlines of the picker tiles
+		# called once at the start of the game
+
 		plane 1
 		drawX := choiceStartX
 		drawY := choiceStartY
-
 		loop
-
 			drawX := choiceStartX
 			i := all_of_border_except_bottom_row
 			sprite drawX drawY 8
@@ -313,16 +318,17 @@
 		return
 
 	: fillPickers
-		drawX := choiceStartX
+		# draw the insides of the tiles you can pick
 		drawY := choiceStartY
 		v1 := 0
 		loop
+			# get the index of tile at v1
 			i := tileTypes
 			i += v1
 			load v0
 
+			# navigate to the correct texture
 			i := placeableTiles
-
 			loop
 				while v0 > 0 
 				v0 += 255
@@ -330,17 +336,18 @@
 				i += v2
 			again
 
-			
 			drawX := choiceStartX
-
 			drawHex
+
+			# increment the y draw position
 			drawY += choiceGap
 			v1 += 1
-		if drawY < 60 then again
+		if v1 < 3 then again
 		return
 
 
 	: drawPickerText
+		# picker text is the 1|2|3 above the tiles
 		drawX := choiceTextX
 		drawY := choiceStartY
 		v1 := choiceTextY
@@ -354,30 +361,19 @@
 				v0 += 255
 			if v0 > 0 then again
 		end
-
-		
-		
-		
 		sprite drawX drawY 5
 		drawY += choiceGap
-
-		
 		return	
 
 	: randomiseChoices
-
+		# generate 3 numbers from 0-5 and save them in the choice slots
 		i := tileTypes
 		random6
 		v2 := v0
 		random6
 		v1 := v0
 		random6
-		
-
 		save v2
-
-		
-
 		return
 
 : fillCurrentHex
@@ -436,7 +432,6 @@
 : nextSurroundingByte
 		
 	# keep track of surroundIndex so you can get the next tile around easily
-
 	surroundTile := surroundCheck
 	if surroundIndex == 0 begin
 		surroundTile += 0b11110000
@@ -648,10 +643,6 @@
 	drawControls
 
 	# update the currentTile and draw it
-	
-
-
-
 	fillCurrentHex
 	return
 
@@ -674,10 +665,14 @@
 	drawX := scoreX
 	drawY := scoreY
 
+	# gap between digits
 	v4 := 5
+
+	# v3 counter keeps track of which digit to be drawing
 	v3 := 0
 
 	loop		
+		
 		if v3 == 0 then v5 := v0
 		if v3 == 1 then v5 := v1
 		if v3 == 2 then v5 := v2
@@ -710,80 +705,91 @@
 
 : addTree
 	
+	# keep track of potential x and y
 	hexX := splitX
 	hexY := splitY
-
+ 
+ 	# get the distance
 	getHexDistance
 
-	if v9 < 2 begin
+	# fail if adjacent to starting location to avoid locking the player in. Plus it looks weird
+	if calculatedDistance < 2 begin
 		counter += 1
 		return
 	end
 
+	# find the tile type byte
 	splitXYToByte
 	hexPosition := xySplit
 	i := tileStorage
 	i += hexPosition
-
 	load v0
+
+	# if it's occupied, fail
 	if v0 != 0 begin
 		counter += 1
 		return
 	end
 
+	# save tile type
 	i := tileStorage
 	i += hexPosition
-
 	v0 := 5
 	save v0
 
+	# get the original x and y again
 	xySplit := hexPosition
 	splitByteToXY
-	setDrawPositionsFromXY
 
+	# draw the tree and we're DONE IM GONNA GO AND DO SOMETHING ELSE FOR A BIT NOW
+	setDrawPositionsFromXY
 	i := trees
 	drawHex
+
 	return
 
 : getHexDistance
-	v9 := 0
 
+	# hex distance is max(abs(x), abs(y), abs(x+y)),  which is a bit tricky to translate to chip8...
+
+	calculatedDistance := 0
+
+	# x+y
 	v2 := hexX
-	v2 += hexY
+	v2 += hexY	
 
-	#:breakpoint distcalc
-
+	# abs x
 	if hexX > 200 begin
-		va := hexX
-		hexX -= va
-		hexX -= va
+		distCalcHelper := hexX
+		hexX -= distCalcHelper
+		hexX -= distCalcHelper
 	end
 
+	# abs y
 	if hexY > 200 begin
-		va := hexY
-		hexY -= va
-		hexY -= va
+		distCalcHelper := hexY
+		hexY -= distCalcHelper
+		hexY -= distCalcHelper
 	end
 
-
+	# abs x+y
 	if v2 > 200 begin
-		va := v2
-		v2 -= va
-		v2 -= va
+		distCalcHelper := v2
+		v2 -= distCalcHelper
+		v2 -= distCalcHelper
 	end
 
 
-
-	if hexX > v9 then v9 := hexX
-	if hexY > v9 then v9 := hexY
-	if v2 > v9 then v9 := v2
-
-	#:breakpoint done
+	# calculate max
+	if hexX > calculatedDistance then calculatedDistance := hexX
+	if hexY > calculatedDistance then calculatedDistance := hexY
+	if v2 > calculatedDistance then calculatedDistance := v2
 
 	return
 
 
 : splitXYToByte
+	# 0b10001000 is 0,0 because I liked centered grids!
 	xySplit := splitX
 	xySplit += 8
 	xySplit <<= xySplit
@@ -795,30 +801,28 @@
 	return
 
 : setupTreePositions
+
+	# make 12 trees
 	counter := 12
 	loop
 		while counter > 0
 
+		# make sure the x coordinate is in bounds
 		loop 
-
 			splitX := random 0b00001111
 			if splitX > 8 then again
 		splitX += 252
 			
+		# make sure the y coordinate is in bounds
 		loop
 			splitY := random 0b00001111
 			if splitY > 11 then again
 		splitY += 251
 
+		# addTree adds one to counter if it fails
 		addTree
-
-
 		counter += 255
 		again
-	
-
-
-
 
 	return
 
