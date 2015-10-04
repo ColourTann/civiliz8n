@@ -32,6 +32,7 @@
 	:alias keyPressed v0
 	:alias splitX v0
 	:alias splitY v1
+	:alias tileTypeToSave v2
 	:alias xySplit v3
 	:alias surroundCheck v5
 	:alias hexX v6
@@ -47,7 +48,6 @@
 	:alias drawY vc
 	:alias gameState vd
 
-		
 # extra registers
 	
 	: splitPositions
@@ -224,9 +224,12 @@
 		save v0
 		
 		# setup starting tile to be shrine
-		i := tileTypes
+		i := tileStorage
+		i += v0
 		v0 := 1
 		save v0
+
+		hexPosition :=  0b10001000
 
 		# draw the starting hex
 		fillCurrentHex
@@ -428,7 +431,7 @@
 		# draw the tree and we're DONE IM GONNA GO AND DO SOMETHING ELSE FOR A BIT NOW
 		setDrawPositionsFromXY
 		i := trees
-		drawHex
+		drawHexture
 
 		return
 
@@ -474,7 +477,7 @@
 			again
 
 			drawX := choiceStartX
-			drawHex
+			drawHexture
 
 			# increment the y draw position
 			drawY += choiceGap
@@ -501,41 +504,53 @@
 		drawY += choiceGap
 		return	
 
+	: saveTileType
+		i := tileStorage
+		i += hexPosition
+		v0 := tileTypeToSave
+		save v0
+		return
+
 	: fillCurrentHex
 
-		# currentTile holds the tile Position
-		i := currentTile
-		load v0
-		hexPosition := v0
-
-		# save 1 in tileStorage to keep track of the fact this tile has been used
-		i := tileStorage
-		i += v0
-		v0 := 1
-		save v0
+		# should just take hexPosition, check what type it is and draw it
 
 		# get the screen position
 		xySplit := hexPosition
 		splitByteToXY
 		setDrawPositionsFromXY
 
+		# load up the correct image
+		i := tileStorage
+		i += hexPosition
+		load v0
+
 		
-		i := selectedTileIndex
-		load v0
-		i := tileTypes
-		i += v0
-		load v0
-		i := hut
+
+
+		i := placeableTiles
 		v1 := 32
 		loop
 			while v0 > 0
 			i += v1
-			v0 += 255
+			v0 += -1
 		again
-		drawHex
+		
+
+
+
+
+
+
+
+
+		
+
+
+		drawHexture
 		return
 
-	: drawHex
+	: drawHexture
 
 		# have do 4 draw calls, 2 with each bitplane
 		v2 := 8
@@ -658,11 +673,18 @@
 			i := tileStorage
 			i += surroundTile
 			load v0
-			if v0 == 5 begin
-				i := tileStorage
-				i += surroundTile
-				v0 := 0
-				save v0
+			if v0 == IDTree begin
+
+				hexPosition := surroundTile
+				tileTypeToSave := 0
+				saveTileType
+				fillCurrentHex
+
+
+			#	i := tileStorage
+			#	i += surroundTile
+			#	v0 := 0
+			#	save v0
 				
 			end
 			counter += 1
@@ -940,6 +962,13 @@
 	drawControls
 
 	# update the currentTile and draw it
+	i := currentTile
+	load v0
+	hexPosition := v0
+	tileTypeToSave := 1
+	#saveTileType
+
+
 	fillCurrentHex
 	return
 
