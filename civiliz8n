@@ -3,8 +3,8 @@
 	:const fiddlyStartX 21 #startX-1
 	:const fiddlyEndX 117 #fiddlyStartX + 9 * 11 - 3
 	:const fiddlyBotY 60 #startY + 8 * 7
-	:const centerX 66
-	:const centerY 29
+	:const centerX 65
+	:const centerY 28
 	:const startY 4
 
 	:const choiceStartX 3
@@ -29,10 +29,11 @@
 	:alias splitY v1
 	:alias xySplit v3
 	:alias surroundCheck v5
+	:alias counter v5
+	:alias hexX v6
 	:alias surroundTile v6
+	:alias hexY v7
 	:alias surroundIndex v7
-	:alias hexPosition3 v8
-	:alias hexPosition3 v8
 	:alias hexPosition2 v9
 	:alias hexPosition va
 	:alias scoreAdd va
@@ -64,7 +65,7 @@
 
 : tileStorage
 	# I know I'm tossing like 200 bytes away here but I'm feeling lazy so what can you do?
-	# check out the sweet PARALLELOGRAM in the middle! That's the only bit that matters
+	# check out the sweet PARALLELOGRAM of 0x00 in the middle! That's the only bit that matters.. kinda
 	0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 
 	0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 
 	0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 
@@ -124,12 +125,7 @@
 	#11 is sand
 
 
-	: trees
-		0x0 0xc 0x3 0x23 0x7f 0x38 0x18 0xf 
-		0x0 0xf 0x1e 0x3e 0x77 0x37 0x1f 0xd 
-		0x0 0x40 0xc0 0xfc 0x8e 0x8c 0xf8 0xf0 
-		0x0 0xf0 0xf8 0xec 0xfe 0xfc 0xd8 0xd0 	
-
+	
 : placeableTiles
 	: hut
 		0x0 0xf 0x1f 0x3e 0x7f 0x3f 0x1b 0xf 
@@ -166,6 +162,13 @@
 		0x0 0xf 0x1c 0x3b 0x7b 0x3b 0x1c 0xf 
 		0x0 0xf0 0x38 0xdc 0xde 0xdc 0x38 0xf0 
 		0x0 0xf0 0x38 0xdc 0xde 0xdc 0x38 0xf0 
+
+	: trees
+		0x0 0xc 0x3 0x23 0x7f 0x38 0x18 0xf 
+		0x0 0xf 0x1e 0x3e 0x77 0x37 0x1f 0xd 
+		0x0 0x40 0xc0 0xfc 0x8e 0x8c 0xf8 0xf0 
+		0x0 0xf0 0xf8 0xec 0xfe 0xfc 0xd8 0xd0 	
+
 
 		
 		
@@ -272,12 +275,9 @@
 			sprite drawX drawY 1		
 			drawX += 22		
 		if drawX < 115 then again
+		return
 
-		drawPickers
-
-		
-
-
+	: drawAllPickerText
 		plane 1
 		v0 := 0
 		drawPickerText
@@ -285,11 +285,10 @@
 		drawPickerText
 		v0 := 2
 		drawPickerText
-
 		return
 
 	: drawPickers
-		
+		plane 1
 		drawX := choiceStartX
 		drawY := choiceStartY
 
@@ -399,8 +398,6 @@
 	splitByteToXY
 	setDrawPositionsFromXY
 
-	drawX += 255
-	drawY += 255
 	
 	i := selectedTileIndex
 	load v0
@@ -414,21 +411,12 @@
 		i += v1
 		v0 += 255
 	again
-
-	
-
-
-
 	drawHex
-
 	return
 
 : drawHex
 
-
-
 	# have do 4 draw calls, 2 with each bitplane
-
 	v2 := 8
 	plane 1
 	sprite drawX drawY 8
@@ -553,16 +541,12 @@
 		nextSurroundingByte
 		hexPosition2 := surroundTile
 		getHexType
-		if v0 == 0xff begin
+		if v0 != 0x00 begin
 			# skips occupied tiles
 		 	skipControlDraw
 		 	return
 		end
-		if v0 == 1 begin
-			# skips occupied tiles
-		 	skipControlDraw
-		 	return
-		end
+		
 
 		xySplit := surroundTile
 		splitByteToXY
@@ -575,8 +559,8 @@
 		i += v0
 		i += v0
 		i += v0
-		drawX += 2
-		drawY += 1
+		drawX += 3
+		drawY += 2
 		sprite drawX drawY 5
 		: skipControlDraw
 	if surroundIndex < 6 then again
@@ -644,12 +628,16 @@
 	surroundCheck := hexPosition
 	nextSurroundingByte
 	
-	# this bit stinks
+	# set the new current tile position
 	hexPosition2 := surroundTile
-	hexPosition3 := surroundTile
+	v0 := surroundTile
+	i := currentTile
+	save v0
+
+
 	getHexType
 	
-	# should change this to a gameState register
+	# trying to place a tile on a used tile
 	if v0 != 0 begin 
 		gameState := state_incorrectInput
 		return
@@ -660,9 +648,7 @@
 	drawControls
 
 	# update the currentTile and draw it
-	v0 := hexPosition3
-	i := currentTile
-	save v0
+	
 
 
 
@@ -678,6 +664,7 @@
 	return
 
 : drawScore
+	plane 1
 	i := score
 	load v0
 	i := decimalScore
@@ -721,32 +708,166 @@
 	drawScore	
 	return
 
+: addTree
+	
+	hexX := splitX
+	hexY := splitY
+
+	getHexDistance
+
+	if v9 < 2 begin
+		counter += 1
+		return
+	end
+
+	splitXYToByte
+	hexPosition := xySplit
+	i := tileStorage
+	i += hexPosition
+
+	load v0
+	if v0 != 0 begin
+		counter += 1
+		return
+	end
+
+	i := tileStorage
+	i += hexPosition
+
+	v0 := 5
+	save v0
+
+	xySplit := hexPosition
+	splitByteToXY
+	setDrawPositionsFromXY
+
+	i := trees
+	drawHex
+	return
+
+: getHexDistance
+	v9 := 0
+
+	v2 := hexX
+	v2 += hexY
+
+	#:breakpoint distcalc
+
+	if hexX > 200 begin
+		va := hexX
+		hexX -= va
+		hexX -= va
+	end
+
+	if hexY > 200 begin
+		va := hexY
+		hexY -= va
+		hexY -= va
+	end
+
+
+	if v2 > 200 begin
+		va := v2
+		v2 -= va
+		v2 -= va
+	end
+
+
+
+	if hexX > v9 then v9 := hexX
+	if hexY > v9 then v9 := hexY
+	if v2 > v9 then v9 := v2
+
+	#:breakpoint done
+
+	return
+
+
+: splitXYToByte
+	xySplit := splitX
+	xySplit += 8
+	xySplit <<= xySplit
+	xySplit <<= xySplit
+	xySplit <<= xySplit
+	xySplit <<= xySplit
+	xySplit += splitY
+	xySplit += 8
+	return
+
+: setupTreePositions
+	counter := 12
+	loop
+		while counter > 0
+
+		loop 
+
+			splitX := random 0b00001111
+			if splitX > 8 then again
+		splitX += 252
+			
+		loop
+			splitY := random 0b00001111
+			if splitY > 11 then again
+		splitY += 251
+
+		addTree
+
+
+		counter += 255
+		again
+	
+
+
+
+
+	return
+
 : setupGame
 	hires
 	gameState := state_drawing
-	plane 1
+
+	# first draw the outlines	
+	drawOutlines
+	
+
+	# set the starting tile to the center
 	v0 := 0b10001000
 	i := currentTile
 	save v0
-	# draw starting hex
-
+	
 	# setup starting tile to be shrine
 	i := tileTypes
 	v0 := 1
 	save v0
 
+	# draw the starting hex
 	fillCurrentHex
+
+	# draw the picker outlines
+	drawPickers
+
+	# setup starting pickers
 	randomiseChoices	
-	drawOutlines 
 	fillPickers
+
+	# draw the picker numbers
+	drawAllPickerText
+
+	# draw the highlighted picker number
 	plane 2
 	v1 := 0
 	drawPickerText	
-	
-	drawControls
 
+	setupTreePositions
+	
+	# draw the score
 	drawScore
 
+	# draw the controls, ready to go!
+	i := currentTile
+	load v0
+	hexPosition := v0
+	drawControls
 	return
 
 : main
@@ -757,11 +878,10 @@
 	: turn
 	loop
 		if gameState != state_incorrectInput begin
-		 	drawControls
-		
 			fillPickers
 			randomiseChoices
-			fillPickers	
+			fillPickers
+			drawControls	
 		end
 		: start
 		keyInput
