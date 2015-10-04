@@ -561,17 +561,6 @@
 			i += v1
 			v0 += -1
 		again
-		
-
-
-
-
-
-
-
-
-		
-
 
 		drawHexture
 		return
@@ -693,11 +682,43 @@
 		i := tileStorage
 		i += v0
 		load v0
-		
-		if v0 == IDLogger then placeLogger
-		if v0 == IDHut then placeHut
+
+		if v0 == IDHut begin
+			placeHut
+			else if v0 == IDLogger begin
+				placeLogger
+				else if v0 == IDMeeting begin
+					placeMeeting
+				end
+			end
+		end
+		return
+
+	: checkSurroundingTiles
+
+		i := currentTile
+		load v0
+		surroundCheck := v0
+		surroundIndex := 0
+		loop
+			while surroundIndex < 6
+			nextSurroundingByte
+			i := tileStorage
+			i += surroundTile
+			load v0
+			v1 := 0b00000111
+			v0 &= v1
+			#:breakpoint checkType
+			if v0 == IDMeeting begin
+				hexPosition2 := surroundTile
+				addToMeeting
+			end
+
+
+		again
 
 		return
+
 
 	: placeHut
 		i := extraHutsToPlace
@@ -754,6 +775,68 @@
 			counter += 1
 		again
 
+		return
+
+	: placeMeeting
+
+		# gain one point
+		i := scoreAdd
+		load v0
+		v0 += 1
+		i := scoreAdd
+		save v0
+
+
+
+		# call addToMeeting for each surrounding tile
+		i := currentTile
+		load v0
+		surroundCheck := v0
+		surroundIndex := 0
+		hexPosition2 := v0
+		loop
+			while surroundIndex < 6
+			nextSurroundingByte
+			i := tileStorage
+			i += surroundTile
+			load v0
+			if v0 < 6 begin # all placeable tiles are 0-5
+				addToMeeting
+			end
+			again
+		return
+
+	: addToMeeting
+		# get the tile stats
+		i := tileStorage
+		i += hexPosition2
+		load v0
+
+		# add "1" to it (the number of surrounding tiles is stored in 0b11100000)
+		v0 += 0b00100000
+		
+		# make a copy of it
+		v1 := v0
+		# and it to get only the surround matrix
+		v2 := 0b11100000
+		v1 &= v2
+
+		# resave the tile stats
+		i := tileStorage
+		i += hexPosition2
+		save v0
+
+		# check if the tile is surrounded. +5 points if it is!
+		
+		if v1 == 0b11000000 begin
+			i := scoreAdd
+			load v0
+			v0 += 5
+			i := scoreAdd
+			save v0
+
+		end
+		
 		return
 
 : nextSurroundingByte
@@ -1094,6 +1177,7 @@
 			
 
 			tilePlacementEffect
+			checkSurroundingTiles
 			incrementTurn
 
 			updateScore
