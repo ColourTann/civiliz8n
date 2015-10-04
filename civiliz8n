@@ -22,6 +22,7 @@
 	:const turnsY 11
 	:const turnsGap 3
 	:const numTurns 10
+	:const IDTree 7
 
 	#states
 	:const state_drawing 0
@@ -45,6 +46,7 @@
 	:alias drawX vb
 	:alias drawY vc
 	:alias gameState vd
+
 		
 # extra registers
 	
@@ -416,7 +418,7 @@
 		# save tile type
 		i := tileStorage
 		i += hexPosition
-		v0 := 5
+		v0 := IDTree
 		save v0
 
 		# get the original x and y again
@@ -656,9 +658,11 @@
 			i := tileStorage
 			i += surroundTile
 			load v0
-			if v0 != 0 begin
+			if v0 == 5 begin
 				i := tileStorage
 				i += surroundTile
+				v0 := 0
+				save v0
 				
 			end
 			counter += 1
