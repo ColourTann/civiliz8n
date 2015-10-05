@@ -1,3 +1,15 @@
+# need to write a title like a cool guy
+#
+#
+#
+#
+#
+#
+#
+#
+#
+
+
 # consts and aliases
 	:const startX 22
 	:const fiddlyStartX 21 #startX-1
@@ -53,16 +65,21 @@
 	:alias splitY v1
 	:alias tileTypeToSave v2
 	:alias xySplit v3
+	:alias counter2 v3
+	:alias counter v4
 	:alias surroundCheck v5
 	:alias hexX v6
 	:alias surroundTile v6
+	:alias pathScoreData v6
 	:alias hexY v7
 	:alias surroundIndex v7
-	:alias counter v8
+	:alias pathPosition v7
 	:alias otherGroup v8
 	:alias hexPosition2 v9
 	:alias calculatedDistance v9
+	:alias pathData v9
 	:alias distCalcHelper va
+	:alias pathShouldScore va
 	:alias hexPosition va
 	:alias mainGroup vb
 	:alias drawX vb
@@ -1141,40 +1158,134 @@
 		i += mainGroup
 		save v0
 
-		v2 := v0
+		
 
-		if v2 == 3 begin
-			i := scoreAdd
-			load v0
-			v0 += 6
-			i := scoreAdd
-			save v0
-		end
+		pathShouldScore := v0
+		
+		if pathShouldScore != 3 then pathShouldScore := 0
+		if pathShouldScore == 3 then pathShouldScore := 1
+		
+		# check all the tiles of the main group
+		# if they should be scored as 3 and aren't, add 2 pts
+		# if they should be scored as 1 and aren't, subtract 2 pts
 
-		if v2 == 4 begin
-			i := scoreAdd
-			load v0
-			v0 += -6
-			i := scoreAdd
-			save v0
-		end
-
-		i := tileStorage
-		i += hexPosition
+		i := allPaths
 		load v0
-		#:breakpoint checkthis
+		pathPosition := v0
+		i := tileStorage
+		i += v0
+		load v0
+		pathData := v0
+		counter := 0
+		loop
+			while pathPosition != 0
+			
 
+			v1 := 0b01111000
+			v0 &= v1
+
+			if v0 == mainGroup begin
+				v1 := 0b10000000
+				pathScoreData := pathData
+				pathScoreData &= v1
+				if pathScoreData != pathShouldScore begin
+
+					if pathShouldScore == 1 begin
+						# increment score
+						i := scoreAdd
+						load v0
+						v0 += 2
+						i := scoreAdd
+						save v0
+					end
+
+					if pathShouldScore == 0 begin
+						i := scoreAdd
+						load v0
+						v0 += -2
+						i := scoreAdd
+						save v0
+					end
+
+					# save the score bit
+					v1 := 0b10000000
+					if pathShouldScore == 0 then pathData -= v1
+					if pathShouldScore == 1 then pathData += v1
+					i := tileStorage
+					i += pathPosition
+					v0 := pathData
+					save v0
+
+				end
+			end
+
+			counter += 1
+			i := allPaths
+			i += counter
+			load v0
+			pathPosition := v0
+			i := tileStorage
+			i += v0
+			load v0
+			pathData := v0
+
+		again
 
 		return
 
 		: mergeGroups
+			i := highestPathIndex
+			load v0
+			counter2 := v0
+			counter := 0
+			loop
+				while counter < counter2
 
-			# iterate through all tiles
-			# check their group
-			# if it's the othergroup, change it to this group and add one to the number of tiles in this group
+				# get the pointer to the tile
+				i := allPaths
+				i += counter
+				load v0
 
-			
+				# get the actual tile
+				i := tileStorage
+				i += v0
+				load v0
 
+				v2 := v0
+
+				# check if the group is othergroup
+				v1 := 0b01111000
+				v0 &= v1
+				if v0 == otherGroup begin
+					# found one
+
+					# incerement the number in the group
+					i := groupNumbers
+					i += mainGroup
+					load v0
+					v0 += 1
+					i := groupNumbers
+					i += mainGroup
+					save v0
+
+					# update the tileData
+					i := allPaths
+					i += counter
+					load v0
+					
+					i := tileStorage
+					i += v0
+
+					v1 := 0v10000111
+					v2 &= v1
+					v2 += mainGroup
+					v0 := v2
+
+					save v0
+				end
+				counter += 1 
+
+			again
 			return
 
 : nextSurroundingByte
