@@ -865,6 +865,7 @@
 			
 			return
 
+
 	: placeTemple
 
 		i := currentTile
@@ -951,7 +952,34 @@
 
 	: placeShrine
 
+		
+		i := currentTile
+		load v0
+		surroundCheck := v0
+		surroundIndex := 0
+		hexPosition2 := v0
+		loop
+			while surroundIndex < 18
+			nextSurroundingByte
+			i := tileStorage
+			i += surroundTile
+			load v0
+			v1 := tileTypeMask
+			v0 &= v1
+			# found a shrine within 2 tiles so cancel
+			if v0 == IDShrine then return 
+		again
+
+		# ok, no shrines within 2 so have points
+		i := scoreAdd
+		load v0
+		v0 += 5
+		i := scoreAdd
+		save v0
+
 		return
+
+		
 
 : nextSurroundingByte
 		
