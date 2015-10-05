@@ -23,6 +23,11 @@
 	:const turnsGap 3
 	:const numTurns 10
 
+	:const plusX 0b00010000
+	:const plusY 0b00000001
+
+	:const minusX 0b11110000
+	:const minusY 0b11111111
 
 	
 
@@ -698,6 +703,9 @@
 					placeMeeting
 					else if v0 == IDTemple begin
 						placeTemple
+						else if v0 == IDShrine begin
+							placeShrine
+						end
 					end
 				end
 			end
@@ -708,6 +716,7 @@
 
 		i := currentTile
 		load v0
+		hexPosition := v0
 		surroundCheck := v0
 		surroundIndex := 0
 		loop
@@ -718,14 +727,13 @@
 			load v0
 			v1 := tileTypeMask
 			v0 &= v1
-			#:breakpoint checkType
+			
+			
+			hexPosition2 := surroundTile
+			
 			if v0 == IDMeeting begin
-				hexPosition2 := surroundTile
 				addToMeeting
 				else if v0 == IDTemple begin
-					i := currentTile load v0
-					hexPosition := v0
-					hexPosition2 := surroundTile
 					tilePlacedNextToTemple
 				end
 			end
@@ -941,33 +949,161 @@
 			save v0
 			return
 
+	: placeShrine
+
+		return
+
 : nextSurroundingByte
 		
 	# keep track of surroundIndex so you can get the next tile around easily
 	surroundTile := surroundCheck
+
+	# 0-5 is the 6 tiles within 1 of surroundCheck
 	if surroundIndex == 0 begin
-		surroundTile += 0b11110000
+		surroundTile += minusX
+		doneByting
+		return
 	end
 	if surroundIndex == 1 begin
-		surroundTile += 255
+		surroundTile += minusY
+		doneByting
+		return
 	end
 	if surroundIndex == 2 begin
-		surroundTile += 255
-		surroundTile += 0b00010000
+		surroundTile += plusX
+		surroundTile += minusY
+		doneByting
+		return
 	end
 	if surroundIndex == 3 begin
-		surroundTile += 0b00010000
+		surroundTile += plusX
+		doneByting
+		return
 	end
 	if surroundIndex == 4 begin
-		surroundTile += 1
+		surroundTile += plusY
+		doneByting
+		return
 	end
 	if surroundIndex == 5 begin
-		surroundTile += 1
-		surroundTile += 0b11110000
+		surroundTile += minusX
+		surroundTile += plusY
+		doneByting
+		return
 	end
+
+
+	# 0b 0000 1111
+
+	# 6-17 is the 12 tiles distance 2 from surroundCheck
+
+	# maximum tile x is 0b1100 so won't overflow with +2
+	# minimum tile x is 0b0100 so won't underflow with -2
+
+	# maximum tile y is 0b1101 so won't overflow with +2
+	# minimum tile y is 0b0101 so won't underflow with -2
+
+	if surroundIndex == 6 begin
+		surroundTile += minusX
+		surroundTile += minusX
+		doneByting
+		return
+	end
+
+	if surroundIndex == 7 begin
+		surroundTile += minusX
+		surroundTile += minusY
+		doneByting
+		return
+	end
+
+	if surroundIndex == 8 begin
+		surroundTile += minusY
+		surroundTile += minusY
+		doneByting
+		return
+	end
+
+	if surroundIndex == 9 begin
+		surroundTile += minusY
+		surroundTile += minusY
+		surroundTile += plusX
+		doneByting
+		return
+	end
+
+	if surroundIndex == 10 begin
+		surroundTile += minusY
+		surroundTile += minusY
+		surroundTile += plusX
+		surroundTile += plusX
+		doneByting
+		return
+	end
+
+
+	if surroundIndex == 11 begin
+		surroundTile += minusY
+		surroundTile += plusX
+		surroundTile += plusX
+		doneByting
+		return
+	end
+
+	if surroundIndex == 12 begin
+		surroundTile += plusX
+		surroundTile += plusX
+		doneByting
+		return
+	end
+
+	if surroundIndex == 13 begin
+		surroundTile += plusX
+		surroundTile += plusY
+		doneByting
+		return
+	end
+
+
+	if surroundIndex == 14 begin
+		surroundTile += plusY
+		surroundTile += plusY
+		doneByting
+		return
+	end
+
+
+	if surroundIndex == 15 begin
+		surroundTile += minusX
+		surroundTile += plusY
+		surroundTile += plusY
+		doneByting
+		return
+	end
+
+	if surroundIndex == 16 begin
+		surroundTile += minusX
+		surroundTile += minusX
+		surroundTile += plusY
+		surroundTile += plusY
+		doneByting
+		return
+	end
+
+	if surroundIndex == 17 begin
+		surroundTile += minusX
+		surroundTile += minusX
+		surroundTile += plusY
+		doneByting
+		return
+	end
+
+	# this is so that once it hits the correct index it doesn't keep checking
+	: doneByting
 	surroundIndex += 1
 	return
-	
+
+
 : splitByteToXY
 
 	# tile locations encode x/y positions in one byte
