@@ -59,7 +59,7 @@
 	:alias hexY v7
 	:alias surroundIndex v7
 	:alias counter v8
-	:alias groupToMerge v8
+	:alias otherGroup v8
 	:alias hexPosition2 v9
 	:alias calculatedDistance v9
 	:alias distCalcHelper va
@@ -111,11 +111,14 @@
 	: highestGroupIndex
 		0x00
 
+	: groupNumbers
+		0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
+
 	: highestPathIndex
 		0x00
 
 	: allPaths
-		0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+		0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
 
 : tileStorage
 	# I know I'm tossing like 200 bytes away here but I'm feeling lazy so what can you do?
@@ -996,6 +999,11 @@
 
 	: placePath
 
+		# path tileData byte is...
+		# 0b10000000 score bit. 1 if scored as 3, 0 otherwise
+		# 0b01111000 group bits
+		# 0b00000111 tileType bits, all tiles have this
+
 		# first add a point
 		i := scoreAdd
 		load v0
@@ -1036,8 +1044,14 @@
 			v0 &= v1
 
 			if v0 == IDPath begin
-
 				# found a path
+
+				i := tileStorage
+				i += surroundTile
+				load v0
+				v1 := 0b01111000
+				v0 &= v1
+				otherGroup := v0
 
 				# just-placed path is ungrouped
 				if mainGroup == 255 begin
@@ -1046,30 +1060,37 @@
 					i := tileStorage
 					i += surroundTile
 					load v0
-					v1 := 0b11111000
+					v1 := 0b01111000
 					v0 &= v1
-					v1 := v0
+
+					mainGroup := v0
 
 					i := tileStorage
 					i += hexPosition
 					load v0
-					v0 |= v1
+					v0 |= mainGroup
 
 					i := tileStorage
 					i += hexPosition
 					save v0
 
-					mainGroup := v1
+				end
+
+				if mainGroup != otherGroup begin
+
+					# already joined a group but found another tile!!!
+					# need to merge the groups
+					
+					mergeGroups
+					
 
 				end
 
+
+
 				foundPath := 1
 
-				i := scoreAdd
-				load v0
-				v0 += 1
-				i := scoreAdd
-				save v0
+
 
 			end
 		again
@@ -1084,14 +1105,14 @@
 			v0 <<= v0
 			v0 <<= v0
 			v0 <<= v0
-			tempTileType := v0
+			mainGroup := v0
 
 			i := tileStorage
 			i += hexPosition
 			load v0
 
 			# save the group number to the tile
-			v0 += tempTileType
+			v0 += mainGroup
 			i := tileStorage
 			i += hexPosition
 			save v0
@@ -1111,13 +1132,50 @@
 		end
 
 
+		# increment the number of tiles in the group
+		i := groupNumbers
+		i += mainGroup
+		load v0
+		v0 += 1
+		i := groupNumbers
+		i += mainGroup
+		save v0
+
+		v2 := v0
+
+		if v2 == 3 begin
+			i := scoreAdd
+			load v0
+			v0 += 6
+			i := scoreAdd
+			save v0
+		end
+
+		if v2 == 4 begin
+			i := scoreAdd
+			load v0
+			v0 += -6
+			i := scoreAdd
+			save v0
+		end
+
 		i := tileStorage
 		i += hexPosition
 		load v0
-		:breakpoint checkthis
+		#:breakpoint checkthis
 
 
 		return
+
+		: mergeGroups
+
+			# iterate through all tiles
+			# check their group
+			# if it's the othergroup, change it to this group and add one to the number of tiles in this group
+
+			
+
+			return
 
 : nextSurroundingByte
 		
