@@ -1,14 +1,8 @@
-# need to write a title like a cool guy
-#
-#
-#
-#
-#
-#
-#
-#
-#
-
+# # # # # # # # # # # # # 
+# CIVILIZ8N				#
+# Build a civilization 	#
+# in 10 turns 			#
+# # # # # # # # # # # # #
 
 # consts and aliases
 	:const startX 22
@@ -58,6 +52,7 @@
 	:const state_drawing 0
 	:const state_waitingForInput 1
 	:const state_incorrectInput 2
+	:const state_gameEnd 3
 
 
 	:alias keyPressed v0
@@ -322,6 +317,7 @@
 		drawPickerText	
 
 		# draw the score
+		plane 1
 		drawScore
 
 		setupTurnBlips
@@ -666,7 +662,6 @@
 		return
 
 	: drawScore
-		plane 1
 		i := score
 		load v0
 		i := decimalScore
@@ -1511,7 +1506,6 @@
 : random6
 	loop
 		v0 := random 0b00000111
-		v0 += 3
 	if v0 > 5 then again
 	return
 
@@ -1548,6 +1542,7 @@
 	return
 
 : updateScore
+	plane 1
 	drawScore
 
 	i := score
@@ -1736,6 +1731,10 @@
 	v0 += 1
 	save v0
 
+	if v0 == 3 begin
+		gameState := state_gameEnd
+	end
+
 	return
 
 : main
@@ -1744,11 +1743,6 @@
 	: turn
 	loop
 		if gameState != state_incorrectInput begin
-
-
-
-			
-
 			tilePlacementEffect
 			checkSurroundingTiles
 			incrementTurn
@@ -1756,17 +1750,40 @@
 			updateScore
 
 			fillPickers
+
+			if gameState == state_gameEnd then gameOver
+
 			randomiseChoices
 			fillPickers
 			
+
+
 			# set hexPosition to CurrentTile
 			i := currentTile
 			load v0
 			hexPosition := v0
 
+			
+
 			# draw controls from this position
 			drawControls	
 		end
+
+
+
 		: start
 		keyInput
+	again
+
+: gameOver
+
+	plane 2
+	loop
+		v0 := 10
+		delay := v0
+		loop
+				v0 := delay
+				if v0 != 0 then
+			again
+		drawScore
 	again
