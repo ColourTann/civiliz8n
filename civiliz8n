@@ -36,6 +36,7 @@
 	:const IDEmpty 7
 
 	:const tileTypeMask 0b00000111
+	:const tileDataMask 0b11111000
 
 	#states
 	:const state_drawing 0
@@ -689,6 +690,9 @@
 				placeLogger
 				else if v0 == IDMeeting begin
 					placeMeeting
+					else if v0 == IDTemple begin
+						placeTemple
+					end
 				end
 			end
 		end
@@ -706,7 +710,7 @@
 			i := tileStorage
 			i += surroundTile
 			load v0
-			v1 := 0b00000111
+			v1 := tileTypeMask
 			v0 &= v1
 			#:breakpoint checkType
 			if v0 == IDMeeting begin
@@ -808,39 +812,61 @@
 			again
 		return
 
-	: addToMeeting
-		# get the tile stats
-		i := tileStorage
-		i += hexPosition2
-		load v0
-
-		# add "1" to it (the number of surrounding tiles is stored in 0b11100000)
-		v0 += 0b00100000
-		
-		# make a copy of it
-		v1 := v0
-		# and it to get only the surround matrix
-		v2 := 0b11100000
-		v1 &= v2
-
-		# resave the tile stats
-		i := tileStorage
-		i += hexPosition2
-		save v0
-
-		# check if the tile is surrounded. +5 points if it is!
-		
-		if v1 == 0b11000000 begin
-			i := scoreAdd
+		: addToMeeting
+			# get the tile stats
+			i := tileStorage
+			i += hexPosition2
 			load v0
-			v0 += 5
-			i := scoreAdd
+
+			# add "1" to it (the number of surrounding tiles is stored in 0b11100000)
+			v0 += 0b00100000
+			
+			# make a copy of it
+			v1 := v0
+			# and it to get only the surround matrix
+			v2 := 0b11100000
+			v1 &= v2
+
+			# resave the tile stats
+			i := tileStorage
+			i += hexPosition2
 			save v0
 
-		end
-		
+			# check if the tile is surrounded. +5 points if it is!
+			
+			if v1 == 0b11000000 begin
+				i := scoreAdd
+				load v0
+				v0 += 5
+				i := scoreAdd
+				save v0
+
+			end
+			
+			return
+
+	: placeTemple
+
+		i := currentTile
+		load v0
+		surroundCheck := v0
+		surroundIndex := 0
+		hexPosition2 := v0
+		loop
+			while surroundIndex < 6
+			nextSurroundingByte
+			i := tileStorage
+			i += surroundTile
+			load v0
+			v1 := tileTypeMask
+			v0 &= v1
+			if v0 < 6 begin # all placeable tiles are 0-5
+				addToMeeting
+			end
+			again
 		return
 
+		return
 : nextSurroundingByte
 		
 	# keep track of surroundIndex so you can get the next tile around easily
